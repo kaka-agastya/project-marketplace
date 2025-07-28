@@ -1,16 +1,15 @@
-// frontend/app/page.tsx
+// app/page.tsx
 
-'use client'; // Wajib ada untuk menggunakan hooks seperti useState dan useEffect
+'use client';
 
 import { useState, useEffect } from 'react';
+import ProductCard from '@/components/ProductCard'; // <-- IMPORT
 
-// Definisikan tipe data untuk produk agar sesuai dengan database
 type Product = {
   id: number;
   name: string;
-  description: string | null;
   price: number;
-  image_url: string | null;
+  image_url?: string | null;
 };
 
 export default function Home() {
@@ -21,12 +20,11 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Ambil data dari API backend kita
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`);
-        if (!response.ok) {
-          throw new Error('Gagal mengambil data dari server');
-        }
-        const data: Product[] = await response.json();
+        // Gunakan URL dari .env.local jika ada, atau default
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        const response = await fetch(`${apiUrl}/api/products`);
+        if (!response.ok) throw new Error('Gagal mengambil data');
+        const data = await response.json();
         setProducts(data);
       } catch (err) {
         setError((err as Error).message);
@@ -34,9 +32,8 @@ export default function Home() {
         setLoading(false);
       }
     };
-
     fetchProducts();
-  }, []); // Array kosong berarti efek ini hanya berjalan sekali saat komponen dimuat
+  }, []);
 
   if (loading) return <p className="text-center mt-10">Memuat produk...</p>;
   if (error) return <p className="text-center mt-10 text-red-500">Error: {error}</p>;
@@ -47,13 +44,8 @@ export default function Home() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.length > 0 ? (
           products.map((product) => (
-            <div key={product.id} className="border rounded-lg p-4 shadow-lg">
-              <div className="w-full h-48 bg-gray-200 mb-4 rounded">
-                 {/* Anda bisa menambahkan tag <img> di sini jika ada image_url */}
-              </div>
-              <h2 className="text-xl font-semibold">{product.name}</h2>
-              <p className="text-gray-700 mt-2">Rp {product.price.toLocaleString('id-ID')}</p>
-            </div>
+            // Gunakan komponen ProductCard di sini
+            <ProductCard key={product.id} product={product} />
           ))
         ) : (
           <p>Belum ada produk yang tersedia.</p>
