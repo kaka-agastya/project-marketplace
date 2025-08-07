@@ -14,13 +14,17 @@ const getSupabaseClient = (jwt?: string) => {
   );
 };
 
+type RouteContext = {
+  params: { id: string };
+};
+
 // GET (mengambil satu produk)
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
+  const { id } = context.params;
   const supabase = getSupabaseClient();
-  const { id } = params;
   
   try {
     const { data, error } = await supabase
@@ -41,9 +45,9 @@ export async function GET(
 // PUT (memperbarui produk)
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
-  const { id } = params;
+  const { id } = context.params;
   const authHeader = request.headers.get('authorization');
 
   if (!authHeader) {
@@ -98,9 +102,9 @@ export async function PUT(
 // DELETE (menghapus produk)
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
-  const { id } = params;
+  const { id } = context.params;
   const authHeader = request.headers.get('authorization');
 
   if (!authHeader) {

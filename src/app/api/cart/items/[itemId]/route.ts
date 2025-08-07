@@ -11,10 +11,16 @@ const getSupabaseClient = (jwt: string) => {
   );
 };
 
+type RouteContext = {
+  params: { itemId: string };
+};
+
+
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { itemId: string } }
+  context: RouteContext // Gunakan tipe yang sudah didefinisikan
 ) {
+  const { itemId } = context.params;
   const authHeader = request.headers.get("authorization");
   if (!authHeader) {
     return NextResponse.json({ error: "Akses ditolak." }, { status: 401 });
@@ -30,8 +36,6 @@ export async function DELETE(
   if (userError || !user) {
     return NextResponse.json({ error: "Token tidak valid." }, { status: 401 });
   }
-
-  const { itemId } = params;
 
   // Verifikasi bahwa item yang akan dihapus adalah milik pengguna
   const { data: item, error: itemError } = await supabase
