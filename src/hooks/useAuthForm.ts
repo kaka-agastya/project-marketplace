@@ -1,7 +1,6 @@
 // hooks/useAuthForm.ts
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase } from '@/app/lib/supabaseClient'; // Ganti path jika perlu
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export function useAuthForm() {
@@ -10,28 +9,28 @@ export function useAuthForm() {
   const [message, setMessage] = useState('');
 
   const router = useRouter();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleRegister = async () => {
     setMessage('Mendaftarkan...');
     try {
-      const response = await fetch(`/api/products`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Registrasi gagal');
-      setMessage('Registrasi berhasil! Silakan login.');
+        // BUG FIX: Seharusnya memanggil /api/auth/register
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Registrasi gagal');
+        setMessage('Registrasi berhasil! Silakan login.');
     } catch (error) {
-      setMessage((error as Error).message);
+        setMessage((error as Error).message);
     }
   };
 
   const handleLogin = async () => {
     setMessage('Logging in...');
     try {
-      const response = await fetch(`${apiUrl}/api/auth/login`, {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -39,7 +38,12 @@ export function useAuthForm() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Login gagal');
 
-      localStorage.setItem('session', JSON.stringify(data.session));
+      // ▼▼▼ PERBAIKAN DI SINI ▼▼▼
+      // 1. Beritahu Supabase client di frontend tentang sesi baru ini.
+      // Ini akan memicu listener onAuthStateChange di AuthContext kita.
+      await supabase.auth.setSession(data.session);
+      // ▲▲▲ SAMPAI DI SINI ▲▲▲
+      
       setMessage('Login berhasil! Mengarahkan ke halaman utama...');
       router.push('/');
     } catch (error) {
@@ -48,16 +52,14 @@ export function useAuthForm() {
   };
 
   const handleGoogleLogin = async () => {
-  await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin, // Arahkan kembali ke halaman utama setelah login
-    },
-  });
-};
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+  };
 
-
-  // Kembalikan semua state dan fungsi yang dibutuhkan oleh UI
   return {
     email,
     password,

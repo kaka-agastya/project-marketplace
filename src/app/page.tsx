@@ -54,7 +54,7 @@ export default function Home() {
     if (searchTerm) {
       params.append('search', searchTerm);
     }
-    const url = `${apiUrl}/api/products?${params.toString()}`;
+    const url = `/api/products?${params.toString()}`;
     
     const delayDebounceFn = setTimeout(() => fetchProducts(url), 500);
     return () => clearTimeout(delayDebounceFn);
@@ -70,7 +70,7 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition((position) => {
       const { latitude, longitude } = position.coords;
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-      const url = `${apiUrl}/api/products/nearby?lat=${latitude}&lon=${longitude}`;
+      const url = `/api/products/nearby?lat=${latitude}&lon=${longitude}`;
       fetchProducts(url);
     }, () => {
       setError('Gagal mendapatkan lokasi. Pastikan Anda memberi izin.');
