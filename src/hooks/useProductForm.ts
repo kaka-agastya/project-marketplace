@@ -11,10 +11,31 @@ export function useProductForm() {
   const [price, setPrice] = useState('');
   const [file, setFile] = useState<File | null>(null); // <-- State untuk file
   const [message, setMessage] = useState('');
+  const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   
   const { session } = useAuth();
   const router = useRouter();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      setMessage('Geolocation tidak didukung oleh browser Anda.');
+      return;
+    }
+    setMessage('Mendapatkan lokasi...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
+        setMessage('Lokasi berhasil didapatkan!');
+      },
+      () => {
+        setMessage('Gagal mendapatkan lokasi. Pastikan Anda memberi izin.');
+      }
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,7 +74,7 @@ export function useProductForm() {
     // 3. Kirim data produk (termasuk URL gambar) ke backend API
     setMessage('Menyimpan data produk...');
     try {
-      const response = await fetch(`${apiUrl}/api/products`, {
+      const response = await fetch(`/api/products`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +84,9 @@ export function useProductForm() {
           name,
           description,
           price: parseFloat(price),
-          image_url: imageUrl, // <-- Sertakan URL gambar
+          image_url: imageUrl,
+          latitude: location?.lat,
+          longitude: location?.lon, // <-- Sertakan URL gambar
         }),
       });
 
@@ -85,5 +108,7 @@ export function useProductForm() {
     setFile, // <-- Ekspor setFile
     message,
     handleSubmit,
+    location, // <-- Ekspor state lokasi
+    handleGetLocation, // <-- Ekspor fungsi baru
   };
 }

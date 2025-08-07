@@ -1,5 +1,5 @@
 // hooks/useAuthForm.ts
-
+import { supabase } from '@/app/lib/supabaseClient';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -9,14 +9,13 @@ export function useAuthForm() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-  const { setSession } = useAuth();
   const router = useRouter();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleRegister = async () => {
     setMessage('Mendaftarkan...');
     try {
-      const response = await fetch(`${apiUrl}/api/auth/register`, {
+      const response = await fetch(`/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -40,7 +39,6 @@ export function useAuthForm() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Login gagal');
 
-      setSession(data.session);
       localStorage.setItem('session', JSON.stringify(data.session));
       setMessage('Login berhasil! Mengarahkan ke halaman utama...');
       router.push('/');
@@ -48,6 +46,16 @@ export function useAuthForm() {
       setMessage((error as Error).message);
     }
   };
+
+  const handleGoogleLogin = async () => {
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin, // Arahkan kembali ke halaman utama setelah login
+    },
+  });
+};
+
 
   // Kembalikan semua state dan fungsi yang dibutuhkan oleh UI
   return {
@@ -58,5 +66,6 @@ export function useAuthForm() {
     setPassword,
     handleLogin,
     handleRegister,
+    handleGoogleLogin,
   };
 }

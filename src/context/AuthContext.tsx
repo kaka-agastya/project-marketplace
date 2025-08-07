@@ -4,13 +4,15 @@
 
 import { createContext, useContext, useState, useEffect, PropsWithChildren } from 'react';
 import { Session } from '@supabase/supabase-js';
+import { supabase } from '@/app/lib/supabaseClient'; // Pastikan path ini benar
 
-// Tipe data untuk context kita
+// ▼▼▼ UBAH BAGIAN INI ▼▼▼
+// Tipe data untuk context kita (hapus setSession)
 type AuthContextType = {
   session: Session | null;
-  setSession: (session: Session | null) => void;
   isLoading: boolean;
 };
+// ▲▲▲ SAMPAI DI SINI ▲▲▲
 
 // Membuat context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,17 +23,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Coba ambil sesi dari localStorage saat aplikasi pertama kali dimuat
-    const savedSession = localStorage.getItem('session');
-    if (savedSession) {
-      setSession(JSON.parse(savedSession));
-    }
-    setIsLoading(false);
+    // Ambil sesi yang mungkin sudah ada saat komponen dimuat
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsLoading(false);
+    });
+
+    // Buat listener untuk memantau perubahan status auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      }
+    );
+
+    // Hentikan listener saat komponen tidak lagi digunakan (cleanup)
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
+  // Objek value sekarang sudah cocok dengan tipenya
   const value = {
     session,
-    setSession,
     isLoading,
   };
 
