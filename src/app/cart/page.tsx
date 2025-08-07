@@ -46,6 +46,18 @@ export default function CartPage() {
   };
 
   useEffect(() => {
+    const fetchCartItems = async () => {
+        if (!session) return;
+        setLoading(true); // Set loading di sini
+        try {
+            // ... (isi dari fungsi fetchCartItems Anda yang lama)
+        } catch (err) {
+            // ...
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (!isAuthLoading) {
       if (session) {
         fetchCartItems();
