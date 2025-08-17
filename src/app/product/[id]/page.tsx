@@ -3,7 +3,9 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import ReviewSection from '@/components/ReviewSection'; // <-- Import baru
@@ -30,6 +32,9 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const mainRef = useRef(null); // Ref untuk container utama
+  const imageRef = useRef(null); // Ref khusus untuk gambar
 
   const handleAddToCart = async () => {
     if (!session) {
@@ -117,6 +122,27 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id]); // Jalankan ulang jika id berubah
 
+  // ▼▼▼ Gunakan useLayoutEffect untuk animasi ▼▼▼
+  useLayoutEffect(() => {
+    if (!loading && product && imageRef.current) {
+      const ctx = gsap.context(() => {
+        // Targetkan gambar di dalam container
+        gsap.to(imageRef.current, {
+          yPercent: -20, // Gerakkan gambar ke atas sebesar 20% dari tingginya
+          ease: "none",
+          scrollTrigger: {
+            trigger: mainRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+          }
+        });
+      }, mainRef);
+      
+      return () => ctx.revert();
+    }
+  }, [loading, product]);
+
   if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (error)
     return <p className="text-center mt-10 text-red-500">Error: {error}</p>;
@@ -127,16 +153,15 @@ export default function ProductDetailPage() {
   return (
     <div className="max-w-4xl mx-auto p-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="w-full h-80 bg-gray-200 flex items-center justify-center rounded-lg overflow-hidden">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="text-gray-400">Gambar Produk</span>
-          )}
+       <div className="w-full h-96 bg-gray-200 rounded-lg overflow-hidden">
+          {/* Container ini lebih tinggi dari gambarnya, memberikan ruang untuk parallax */}
+          <div ref={imageRef} className="w-full h-[130%] relative -top-[15%]">
+            {product.image_url ? (
+              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover"/>
+            ) : (
+              <span className="text-gray-400 flex items-center justify-center h-full">Gambar Produk</span>
+            )}
+          </div>
         </div>
         <div>
           <h1 className="text-4xl font-bold mb-4">{product.name}</h1>

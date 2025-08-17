@@ -1,15 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  /* ▼▼▼ UBAH NILAI VARIABEL DI SINI ▼▼▼ */
+  --background: #f4f4f4; /* Atur background di sini */
   --foreground: #171717;
+  --font-caveat: 'Caveat', cursive; /* Definisikan font doodle Anda */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ▼▼▼ GUNAKAN VARIABEL FONT ANDA DI SINI ▼▼▼ */
+  --font-sans: var(--font-caveat);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,7 +23,47 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Kosongkan dari font-family dan background-color */
+  cursor: none; /* Sembunyikan cursor default */
+}
+
+/* Gaya kustom untuk tombol agar terlihat seperti doodle */
+.btn-doodle {
+  border: 2px solid black;
+  border-radius: 12px 8px 15px 10px / 8px 15px 10px 12px; /* Border tidak sempurna */
+  transition: all 0.2s ease;
+}
+.btn-doodle:hover {
+  box-shadow: 4px 4px 0px black;
+  transform: translate(-2px, -2px);
+}
+
+/* Gaya kustom untuk kartu produk */
+.card-doodle {
+  border: 2px solid black;
+  background-color: white;
+  border-radius: 12px 8px 15px 10px / 8px 15px 10px 12px;
+}
+
+.cursor-dot,
+.cursor-outline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none; /* Wajib agar tidak mengganggu klik */
+  z-index: 9999;
+}
+
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  background-color: black;
+}
+
+.cursor-outline {
+  width: 40px;
+  height: 40px;
+  border: 2px solid black;
 }

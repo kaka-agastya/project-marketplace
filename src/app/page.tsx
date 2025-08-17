@@ -2,8 +2,13 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import ProductCard from '@/components/ProductCard';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import SplitType from 'split-type'; // <-- 2. Import SplitType
+
+gsap.registerPlugin(ScrollTrigger);
 
 type Product = {
   id: number;
@@ -13,6 +18,8 @@ type Product = {
 };
 
 export default function Home() {
+  const titleRef = useRef(null);
+  const productGridRef = useRef(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +27,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
+  const mainRef = useRef(null);
   // Fungsi untuk mengambil data produk
   const fetchProducts = async (url: string) => {
     setLoading(true);
@@ -60,6 +68,56 @@ export default function Home() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, currentPage]);
 
+  // ▼▼▼ GANTI useEffect ANIMASI DENGAN INI ▼▼▼
+  useEffect(() => {
+    // Jalankan animasi hanya jika loading selesai dan ada produk
+    if (!loading && products.length > 0) {
+      // Konteks ScrollTrigger untuk cleanup otomatis
+      const ctx = gsap.context(() => {
+        // Targetkan semua elemen dengan class 'product-card'
+        gsap.utils.toArray('.product-card').forEach((card: any) => {
+          gsap.fromTo(card, 
+            { y: 50, opacity: 0 }, // Mulai dari bawah dan transparan
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.7,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: card, // Pemicu animasi adalah kartu itu sendiri
+                start: 'top 90%', // Mulai saat 90% bagian atas kartu masuk layar
+                toggleActions: 'play none none none', // Hanya jalankan sekali saat masuk
+                once: true,
+              }
+            }
+          );
+        });
+      }, mainRef); // Lingkup context ke elemen utama
+
+      return () => ctx.revert(); // Cleanup saat komponen unmount
+    }
+  }, [loading, products]);
+  // ▲▲▲ SAMPAI DI SINI ▲▲▲
+  // ▲▲▲ SAMPAI DI SINI ▲▲▲
+
+  useLayoutEffect(() => {
+        // Pastikan elemen sudah ada
+        if (titleRef.current) {
+            // Gunakan SplitType untuk memecah teks menjadi karakter
+            const text = new SplitType(titleRef.current, { types: 'chars' });
+            
+            // Animasikan setiap karakter
+            gsap.from(text.chars, {
+                opacity: 0,
+                y: 20,
+                rotateX: -90,
+                stagger: 0.02,
+                duration: 0.8,
+                ease: 'power3.out',
+            });
+        }
+    }, []); // Jalankan sekali saat komponen dimua
+
   // Fungsi baru untuk mencari produk terdekat
   const handleNearbySearch = () => {
     if (!navigator.geolocation) {
@@ -81,9 +139,13 @@ export default function Home() {
   const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
   return (
-    <main className="p-8">
+    <main ref={mainRef} className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Selamat Datang di Marketplace</h1>
+        {/* ▼▼▼ 5. Terapkan ref ke judul ▼▼▼ */}
+                <h1 ref={titleRef} className="text-3xl font-bold">
+                    Selamat Datang di Marketplace
+                </h1>
+                {/* ▲▲▲ SAMPAI DI SINI ▲▲▲ */}
         <div className="mt-4 flex flex-wrap gap-4">
           <input
             type="text"
@@ -111,7 +173,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.length > 0 ? (
               products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} className='product-card' />
               ))
             ) : (
               <p className="col-span-full">Produk tidak ditemukan.</p>

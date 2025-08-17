@@ -47,7 +47,7 @@ export default function Navbar() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="px-3 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 btn-doodle"
                 >
                   Logout
                 </button>
@@ -55,7 +55,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="px-3 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                className="px-3 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 btn-doodle"
               >
                 Login
               </Link>
